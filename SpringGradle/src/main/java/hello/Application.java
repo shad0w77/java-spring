@@ -1,75 +1,52 @@
 package hello;
 
-import javax.sql.DataSource;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
 
-import org.junit.Assert;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-@Configuration
-@EnableTransactionManagement
-@EnableAutoConfiguration
 public class Application {
 
-    @Bean
-    BookingService bookingService() {
-        return new BookingService();
-    }
+    public static void main(String args[]) {
+        // simple DS for test (not for production!)
+        SimpleDriverDataSource dataSource = new SimpleDriverDataSource();
+        dataSource.setDriverClass(org.h2.Driver.class);
+        dataSource.setUsername("sa");
+        dataSource.setUrl("jdbc:h2:mem");
+        dataSource.setPassword("");
 
-    @Bean
-    DataSource dataSource() {
-        return new SimpleDriverDataSource() {{
-            setDriverClass(org.h2.Driver.class);
-            setUsername("sa");
-            setUrl("jdbc:h2:mem");
-            setPassword("");
-        }};
-    }
-
-    @Bean
-    JdbcTemplate jdbcTemplate(DataSource dataSource) {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+
         System.out.println("Creating tables");
-        jdbcTemplate.execute("drop table BOOKINGS if exists");
-        jdbcTemplate.execute("create table BOOKINGS(" +
-                "ID serial, FIRST_NAME varchar(5) NOT NULL)");
-        return jdbcTemplate;
-    }
+        jdbcTemplate.execute("drop table customers if exists");
+        jdbcTemplate.execute("create table customers(" +
+                "id serial, first_name varchar(255), last_name varchar(255))");
 
-    public static void main(String[] args) {
-        ApplicationContext ctx = SpringApplication.run(Application.class, args);
-
-        BookingService bookingService = ctx.getBean(BookingService.class);
-        bookingService.book("Alice", "Bob", "Carol");
-        Assert.assertEquals("First booking should work with no problem",
-                3, bookingService.findAllBookings().size());
-
-        try {
-            bookingService.book("Chris", "Samuel");
-        } catch (RuntimeException e) {
-            System.out.println(e.getMessage());
+        String[] names = "John Woo;Jeff Dean;Josh Bloch;Josh Long".split(";");
+        for (String fullname : names) {
+            String[] name = fullname.split(" ");
+            System.out.printf("Inserting customer record for %s %s\n", name[0], name[1]);
+            jdbcTemplate.update(
+                    "INSERT INTO customers(first_name,last_name) values(?,?)",
+                    name[0], name[1]);
         }
 
-        Assert.assertEquals("'Samuel' should have triggered a rollback",
-                3, bookingService.findAllBookings().size());
+        System.out.println("Querying for customer records where first_name = 'Josh':");
+        List<Customer> results = jdbcTemplate.query(
+                "select * from customers where first_name = ?", new Object[] { "Josh" },
+                new RowMapper<Customer>() {
+                    @Override
+                    public Customer mapRow(ResultSet rs, int rowNum) throws SQLException {
+                        return new Customer(rs.getLong("id"), rs.getString("first_name"),
+                                rs.getString("last_name"));
+                    }
+                });
 
-        try {
-            bookingService.book("Buddy", null);
-        } catch (RuntimeException e) {
-            System.out.println(e.getMessage());
+        for (Customer customer : results) {
+            System.out.println(customer);
         }
-
-        Assert.assertEquals("'null' should have triggered a rollback",
-                3, bookingService.findAllBookings().size());
-        
-        System.out.println("FIND_ALL_BOOKINGS = " + bookingService.findAllBookings());
-
     }
-
 }
