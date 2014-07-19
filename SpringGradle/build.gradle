@@ -5,8 +5,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.1.4.RELEASE")	
-			
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.1.4.RELEASE")
     }
 }
 
@@ -16,7 +15,7 @@ apply plugin: 'idea'
 apply plugin: 'spring-boot'
 
 jar {
-    baseName = 'gs-rest-service'
+    baseName = 'gs-consuming-rest'
     version =  '0.1.0'
 }
 
@@ -27,7 +26,9 @@ repositories {
 }
 
 dependencies {
-    compile("org.springframework.boot:spring-boot-starter-web")	
+    compile("org.springframework.boot:spring-boot-starter")
+    compile("org.springframework:spring-web")
+    compile("com.fasterxml.jackson.core:jackson-databind")
     testCompile("junit:junit")
 }
 
