@@ -15,7 +15,7 @@ apply plugin: 'idea'
 apply plugin: 'spring-boot'
 
 jar {
-    baseName = 'gs-serving-web-content'
+    baseName = 'gs-validating-form-input'
     version =  '0.1.0'
 }
 
@@ -27,6 +27,8 @@ repositories {
 
 dependencies {
     compile("org.springframework.boot:spring-boot-starter-thymeleaf")
+    compile("org.hibernate:hibernate-validator")
+    compile("org.apache.tomcat.embed:tomcat-embed-el")
     testCompile("junit:junit")
 }
 
