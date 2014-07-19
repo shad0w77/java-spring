@@ -15,7 +15,7 @@ apply plugin: 'idea'
 apply plugin: 'spring-boot'
 
 jar {
-    baseName = 'gs-validating-form-input'
+    baseName = 'gs-messaging-jms'
     version =  '0.1.0'
 }
 
@@ -26,9 +26,9 @@ repositories {
 }
 
 dependencies {
-    compile("org.springframework.boot:spring-boot-starter-thymeleaf")
-    compile("org.hibernate:hibernate-validator")
-    compile("org.apache.tomcat.embed:tomcat-embed-el")
+    compile("org.springframework.boot:spring-boot-starter")
+    compile("org.springframework:spring-jms")
+    compile("org.apache.activemq:activemq-broker")
     testCompile("junit:junit")
 }
 
